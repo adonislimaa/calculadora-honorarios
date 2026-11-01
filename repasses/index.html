@@ -198,7 +198,7 @@ pre{white-space:pre-wrap;font-family:inherit;font-size:13.5px;line-height:1.55;b
    "liquido": imposto sobre o valor pago; as comissões sobre o valor depois do imposto.
    "bruto":   tudo sobre o valor pago.
    "cascata": cada percentual sobre o que sobrou da dedução anterior. */
-const BASE = "liquido";
+const BASE = "cascata";
 
 /* ---------- utilidades ---------- */
 const BRL = new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL",minimumFractionDigits:2});
@@ -277,8 +277,9 @@ function render(){
   const linhas=[];
   linhas.push(`<tr><td>Valor pago pelo cliente${cliente?`<span class="d">${esc(cliente)}</span>`:""}</td><td class="r">${money(valor)}</td></tr>`);
   if(temImp) linhas.push(`<tr class="neg"><td><span class="dot" style="background:var(--c-imp)"></span>Imposto<span class="d">${pctTxt(pImp)} de ${money(valor)}</span></td><td class="r">− ${money(r.imp)}</td></tr>`);
-  if(temImp && BASE!=="bruto" && (temInd||temPar)) linhas.push(`<tr class="base"><td>Valor depois do imposto<span class="d">Base das comissões</span></td><td class="r">${money(r.aposImp)}</td></tr>`);
+  if(temImp && BASE!=="bruto" && (temInd||temPar)) linhas.push(`<tr class="base"><td>Valor depois do imposto<span class="d">${BASE==="cascata"?"Base da comissão seguinte":"Base das comissões"}</span></td><td class="r">${money(r.aposImp)}</td></tr>`);
   if(temInd) linhas.push(`<tr class="neg"><td><span class="dot" style="background:var(--c-ind)"></span>Comissão pela indicação${nInd?` · ${esc(nInd)}`:""}<span class="d">${pctTxt(pInd)} de ${money(r.baseInd)}</span></td><td class="r">− ${money(r.ind)}</td></tr>`);
+  if(BASE==="cascata" && temInd && temPar) linhas.push(`<tr class="base"><td>Valor depois da indicação<span class="d">Base da comissão do advogado</span></td><td class="r">${money(r.basePar)}</td></tr>`);
   if(temPar) linhas.push(`<tr class="neg"><td><span class="dot" style="background:var(--c-par)"></span>Comissão do advogado parceiro ou associado${nPar?` · ${esc(nPar)}`:""}<span class="d">${pctTxt(pPar)} de ${money(r.basePar)}</span></td><td class="r">− ${money(r.par)}</td></tr>`);
   linhas.push(`<tr class="tot"><td>Líquido do escritório<span class="d">${pctTxt(pctLiq)} do valor pago</span></td><td class="r">${money(r.liquido)}</td></tr>`);
   html+=`<div class="card section" style="margin-top:16px"><h3>Composição do repasse</h3><div class="table-wrap"><table><tbody>${linhas.join("")}</tbody></table></div>`;
