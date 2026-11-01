@@ -150,8 +150,8 @@ pre{white-space:pre-wrap;font-family:inherit;font-size:13.5px;line-height:1.55;b
       </div>
       <div>
         <label class="f" for="smAtual">Salário mínimo vigente</label>
-        <input type="text" id="smAtual" inputmode="numeric" value="1.621,00">
-        <div class="hint">Atualizar quando o salário mínimo mudar. Os meses anteriores usam o mínimo de cada época.</div>
+        <input type="text" id="smAtual" inputmode="numeric" value="" placeholder="Ex.: 1.621,00">
+        <div class="hint">Preencha com o salário mínimo do ano atual. Nos atrasados, os meses anteriores usam o mínimo de cada época.</div>
       </div>
     </div>
   </div>
@@ -447,6 +447,7 @@ function renderBeneficioOuRevisao(servico){
   let beneficio, entrada, quatro, valorDoMes, rotuloQuatro, linhasComp, avisoExtra="";
 
   if(servico==="beneficio"){
+    if(sm<=0) return msg("Preencha o salário mínimo vigente no passo 1.");
     const tipo=radio("tipoValor");
     if(tipo==="sm"){
       beneficio=sm; valorDoMes=smEm;
@@ -582,7 +583,7 @@ function renderTrintaPorCento(servico){
   const sm=parseCur($("smAtual").value);
   const tipo=radio("tipoValor");
   let valorDoMes, beneficio;
-  if(tipo==="sm"){ valorDoMes=smEm; beneficio=sm; }
+  if(tipo==="sm"){ if(sm<=0) return msg("Preencha o salário mínimo vigente no passo 1."); valorDoMes=smEm; beneficio=sm; }
   else { const rmi=parseCur($("rmi").value); if(rmi<=0 && radio("modo")==="periodo") return msg("Informe a RMI do benefício."); valorDoMes=()=>rmi; beneficio=rmi; }
   const at=lerAtrasados(valorDoMes);
   if(at.erro) return msg(at.erro);
