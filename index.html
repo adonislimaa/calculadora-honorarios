@@ -610,7 +610,7 @@ function renderFixo(servico){
   let valor, nome, obs, vinc=false;
   if(servico==="curatela"){
     const res=$("curatelaResultado").checked;
-    valor=res?4500:3000; nome="Curatela"; vinc=res;
+    valor=res?4500:3500; nome="Curatela"; vinc=res;
     obs=res?"Pagamento vinculado ao resultado do benefício pretendido.":"Pago antes do fim do processo.";
   } else if(servico==="analise"){
     const ano=radio("anoAnalise"); valor=ano==="2027"?350:300; nome="Análise previdenciária"; obs=`Valor de ${ano}.`;
