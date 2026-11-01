@@ -207,7 +207,7 @@ pre{white-space:pre-wrap;font-family:inherit;font-size:13.5px;line-height:1.55;b
     </div>
 
     <div class="sub hide" id="boxPeriodo">
-      <div class="note info" style="margin:0 0 14px">Estimativa sem correção monetária. Serve para a conversa da contratação. Na cobrança final, use o valor que o INSS pagou.</div>
+      <div class="note info" style="margin:0 0 14px">Estimativa sem correção monetária. Para o valor exato, use o valor que o INSS pagou.</div>
       <div class="grid">
         <div>
           <label class="f" for="dataIni" id="lblIni">Início (DIB)</label>
@@ -430,7 +430,7 @@ function tabelaAtrasados(at, titulo){
 }
 
 function blocoCopiar(texto){
-  return `<div class="card section"><h3>Resumo para o registro</h3><p class="hint" style="margin:-6px 0 10px">Para colar na tarefa DOCUMENTOS DE CONTRATAÇÃO ASSINADOS.</p>
+  return `<div class="card section"><h3>Resumo para o registro</h3><p class="hint" style="margin:-6px 0 10px">Para colar na tarefa CALCULAR HONORÁRIOS do AdvBox.</p>
     <pre id="txtResumo">${esc(texto)}</pre>
     <div class="row"><button type="button" class="primary" id="btnCopiar">Copiar resumo</button><span class="hint" id="copiado"></span></div></div>`;
 }
@@ -719,7 +719,7 @@ function copiarResumo(){
   copiarTexto(txt).then(ok=>{
     const b=$("btnCopiar"), c=$("copiado");
     if(ok){
-      b.textContent="✓ Copiado"; c.textContent="Agora é só colar na tarefa do AdvBox.";
+      b.textContent="✓ Copiado"; c.textContent="Agora é só colar na tarefa CALCULAR HONORÁRIOS.";
       setTimeout(()=>{ if($("btnCopiar")) $("btnCopiar").textContent="Copiar resumo"; },2500);
     } else {
       const r=document.createRange(); r.selectNodeContents($("txtResumo")); const sel=getSelection(); sel.removeAllRanges(); sel.addRange(r);
