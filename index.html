@@ -270,7 +270,7 @@ pre{white-space:pre-wrap;font-family:inherit;font-size:13.5px;line-height:1.55;b
   <div class="card section hide" id="secFixo">
     <h2><span class="n">2</span>Condição</h2>
     <div id="boxCuratela" class="hide">
-      <label class="check"><input type="checkbox" id="curatelaResultado"> <span>Pagamento vinculado ao resultado do benefício pretendido (o escritório assume o risco).</span></label>
+      <label class="check"><input type="checkbox" id="curatelaResultado"> <span>Vinculada à concessão de um benefício (o escritório assume o risco).</span></label>
     </div>
     <div id="boxPlanej" class="hide">
       <div class="seg" role="radiogroup">
@@ -611,7 +611,7 @@ function renderFixo(servico){
   if(servico==="curatela"){
     const res=$("curatelaResultado").checked;
     valor=res?4500:3500; nome="Curatela"; vinc=res;
-    obs=res?"Pagamento vinculado ao resultado do benefício pretendido.":"Pago antes do fim do processo.";
+    obs=res?"Vinculada à concessão do benefício.":"Sem vínculo com a concessão de benefício.";
   } else if(servico==="analise"){
     const ano=radio("anoAnalise"); valor=ano==="2027"?350:300; nome="Análise previdenciária"; obs=`Valor de ${ano}.`;
   } else {
