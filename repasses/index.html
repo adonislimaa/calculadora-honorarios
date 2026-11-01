@@ -135,6 +135,11 @@ pre{white-space:pre-wrap;font-family:inherit;font-size:13.5px;line-height:1.55;b
         <div class="hint">Valor dos honorários que o cliente pagou.</div>
       </div>
       <div>
+        <label class="f" for="parcelas">Número de parcelas</label>
+        <input type="text" id="parcelas" inputmode="numeric" placeholder="Ex.: 10" autocomplete="off">
+        <div class="hint">Deixe em branco se o pagamento for à vista.</div>
+      </div>
+      <div style="grid-column:1/-1">
         <label class="f" for="cliente">Cliente (opcional)</label>
         <input type="text" id="cliente" placeholder="Nome do cliente" autocomplete="off">
         <div class="hint">Aparece no resumo.</div>
@@ -237,6 +242,7 @@ function calcular(valor, pImp, pInd, pPar){
   return {imp, aposImp, baseInd, ind, basePar, par, liquido, deducoes:round(imp+ind+par)};
 }
 
+const rotIni = n => n===2?"1ª parcela":n===3?"1ª e 2ª":`1ª a ${n-1}ª`;
 /* ---------- render ---------- */
 function msg(t){ return `<div class="card empty"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAW5UlEQVR42u2de5BbV3nAv++cc+/VldavJXESN8QppPFKsp2Am8BMC9uW8AqU/lHuJm2nMyQFMk1sax9+JBNSrZrQxo9deW0n0wSYAhNeEnQoj0KHR9mZ0gaoIa/VrkMGJrSNS5zYsVcr3dc5X/+Q7tpsduO92ocl7f1mNB6PZd3H+c73Or/zHYBIIokkkkgiiSSSSCKJJJIVIwSABIDRm4hkxcpK1X4kAvjUnk0dAAB/tf94GTEwCitL2Eoc/ULBYohAU5IdmZJsBBGoULBYZAFWgFgW8GIR1MhAKikYPk1A5Lm4pW9kbCKbBczlQEUWoJ0VACwAACKiPOfINM444zQEAJQuWStuQqwoBSgULN5TLMqRgfQfxw3+LseV0vakNA323sMDXe/rKRZloWDxyAW06bNms4Cdp67RQNef0gX7Hc9TBACgaQxdXx6/ogOvG4OSn8sBrZSAcMVYgGy2m+dyoFBoOztMfq3nSQkIDBCY40nVERNdL5yFHbkcqGy2m0cWoK0GH9jgINCj93Zd7rlsHAFX+USI9ecnAhIciAjOAkDyZKL0IgDASggIV4QFSKctRASqVvHvYgZf4ytFeJ7yIwJKSSpm8LVSqQdyOVDp9MoICNv+IQsW8J4iyIcG0jcwDo97kggA5jLxUuOIrmQ3ZoaePlZPGWVkAVo88QMA8EnlOUdGNHdsR0RQ+47Mn5cyRi6g1dO+Q32pP0/ExO9VHSkRcc4ADxF51ZEyEeNvO9TXdetKSAvb1gUQAA5mAS89mYork0qCsyt9nwjwAkpPoIRA9BX9yiGRLnc8VR3MAWGbpoVtawGKBYvlcqB8HfYmTPF611fqgoNfmxLM85VMxPhGXXm7czlQg22cFrblg2WzwO7aXqI1vVveoGv0mOcTB0A2X4uHiCglEeP4lnfe0Pn5u/cdOw1ZYKOj7WcF2tICpNMWIgBx5u/XNW5KRRTS3aFURDGdx5HzfQhA7ZoWtt1DFax6vb8v/YeGgd93PSkBsFFLJ3WNccfx/yCTnxgNfjuyAE2s0EUoQsGyOKAarsV0jev4tNlANlywgBfbcNK0lQJks928WAT5f1eOfThhiusdV0pcQJyDANx2pUyY/M3/e2Xq9mItLWyrd9Y22kwEODgIuPpsaq3OYZwjXuJLgnlF/hdKCzmCJDrJBU/+2nj6zOAgEGJ7BIRto83FYi3t4wjZuMHXu1LRggc/SAulUnGDX+a5/n25HKhisX2sQFtYgADzOtqbTKGOP1MSeB33XqznIwQgxtAHhOvv2t8++FhbaHKAeUmEIV0wTVHotO+CE0URka4x3fPaCx9reQU4H/MyY/zdFfu16/0NawAirzi+jMfaCx9rdS2eHfPCJVJsAlXDx9TxKzqgLfCxlrYAAealhLazI8avdT2plmzwg4DQk7LD5F0nJmF7O+Bj2LqDD2xwECjf13W5Ll6NeYWo9YR6DwRAgiERUVvgYy1rAQLMizP8+GyYV4gJgCH/A/pSUczga702wMda8sYDzOvQQPoG48KY11wPTgpAARAwQBZylzAhgBIc0ZXyxszQRMviYy1qAeqo1jwwr1lHj0h2xAUi0d8g4cc64gKJKMzgoZrGx1hL42MtZwEKBYv39BTl4f7Un5kx/vmK7YdL++rEj1J0wpGrr+lcfYLKU4nnOMMN8yKGZihSPCZ41fZv3Tk8/qXg3iIFWCI5H/Mik8Y4Z69vZNASpuDlKfmh3kOlzwAAjAwk/zIRE5+dqjamTK2Mj7WUCxisp33SoD1xU1w1b8xrerxIxgzOp6ryR5l86bOWZXHLsvjOofHHylX5eMzgnCCEK5gFHyu22Gphy9xsNgtsMDcqDw9s/W0ucKBqS8UQQ90/AoJSRIypPkQgqx5NIAAhqT6liDCkUUREXrWl4gJ35zObrrasospmW+e9tsyNpks1zEspb39M4/GwmFfNX3PuevS5HQcn/jMoIQcl3Ux+4nHHlY/FY5yHDQh/Ax/D1lonaAkFCFCsIwPpP4gZ/IMVJ1y9v168QdtRkyD4PUSAY2PFaT89NlYkIkAD5D22oyYFQ6QQfhwRecWWMqaznqMDybf3FIuyYLXGOkEr3CRCuoSDaYuV17z4FcHxCl8RYRjlJZJxU3DblX/be3Dsm+m0xbdvL01X7mq0b7fY/eBPz7zrrZdSwuTvdD0lMYSLIQDSODJPwnVvedfJT46eTGOpVKLmf7ktkvaNDKQ+mojxRxqJ1DUN0ffVL1y1ZsvZ1Y87c0TqmM0CXg0b9cly/GlNsDd6XmMZxlTV+0hmeOKTrZAWNrULCEz1w3dvWccQ7nddpRAwlNISEAnOkID2DOQfrwbI+GxfTactvC33vA0EuwVHJAhXYUJAdF2lGGMPPHz3lnWBa4kUoEEJMC/P8bJxg6/3Zci0j0iaBucV2//+zqGJfypYrz0je3pqvnvn8PhXp2z1XTNsQIjAXKkobvDLPKc18LGmvblsFlhPT1GNDKRSQmN3VmypIBzoQYwh+JJ8JNYPAFCE4oWVrv4drvF+3yOfMay7+Hm+UERWsaUSgt31UCad7Olp7rSwaW+snkoREQ3pgofGvIhIxQ3OXY8+sTM/9mShYM1rsaZYBFkoWHzHvqefdn31SNzgHMKvE9TwMdb8+FhT3lgQPB3q73p/3BBfr7pSYojdPURAGkdSRKel4yZPdT73MsD81+yDGbtq8tpOg4lxjtgZFjEnIGnqnFds+b7e/Pi/NGtA2IwWAMfGijSy4xqDATsoFRAShlRUUobOmFSQyxx57iRANwsDbNS+2812DT/7klIwaOiMhQ4ICVEpIGQwVMim9HrdASMFuODsq3fz0vXtCZNvcsJjXtLQOZuqymdiZfMfsllgudxo6JmXy41KywJ+atWlj5Sr/tOGzjkAhAoI7Xr3sWbGx1hzDT4wgFF1dFfqcsbgY7arFIas9wMQIAIiqP47Hj3mBbFEI1moBRbkcqM+MuhvpJc0IjLbVYozuO/ortTlAKNNFxA21c2k0xbmcqB8CR+P6XytlEphyHq/aQhu2/JrO4YnvrPQ3bxBSXfnwfHvVh31VdMQodJCBEAplYoZfK1PdH8z4mNNowCWBbynpyiP9G7+XUPDD1VsKQFRhJmxHBFdT9m6gF0EgGOp4oJLsWOpIhEACoDdrqdsjhjOoiCKii2lztntIwNd23p6itKymqcE3zwKUEeqFMqGMS/T5Mz35eG/PjD+86BFzELvK2gRsz1fes6TKm+anCkiFfLeQHBkQGz4/GeN0sCZad9A160JQ/tCo5iXL+kEdbjJU/BceTF38AY7j19f2ZSoEB8XC8DHyrZ/a18T4WMX3QJQPe377MDWBAPc5/mKGqn36xpDSXBvJvfcWYButpjbtxFr6wQfPnB8koju0TXW0DqB5yvigPsODGxNjI3VXMuKV4AA8zpF3p6EKa7yfCUbw7z8H/cOlT5jWRbP5Ub9xb7P6XWCBeBjrq9UIs43iibqPnZRFaC2u2dU5vduulpw3FW1pQq7sbOOeQEAq2NexSW842INHxON4WMMkVVtqXSBu44OJDcODo7Ki50WXtSLB7t70OP7Y3rjmJfjq89lhsf+o4Z5Ld3mjJ76OkFm/8LwMUPnCV/R/sC1rEgFCJZmR/q6umM6s8Ju6w4wL8dRZY3YqzCvpZJpfMw07rEd2Tg+Zoie/EDy7YFruVjjcLEujJBO42C6xMpr1n9ZWyDmtWO49A2AbpHLPb/kUfU0PvbAj868+y2XQjzOb3K8cBXLAB9TCrbeeA4fWzlpYDbbLXK5UT/fl/rIqjh/tFHMy/Ppl55avfk1MK8ly1wG2wQfW3YXUEOkRtXDd29ZJ/jCMC+l8EKY11LNmsXBx7waPpbPXLf2YuFjy64A05iX698XN/hljWJeU7b/b735sa9cCPNasoDwPHysUlXfawQf8/xa9zFk7kXDx5b1ggHm9dCedFJwdtcCMC9JDF8L88Il+sxICmvXJs76fT88PlYPCJUm2PbD/Zu7LgY+tqwXC5ZmPY+GdI3pobt5Ecm4wbnn0yf6DpaeeA3Mi5boM8Oa1dLC3oPPPOX46tGF4GME6qLgY8t2sel6/+7kzXHBv9kI5iU4kiL1itKMrlP6E7NiXiM7rjEyR55zFnsm5XKggt+eadUAADZMXtvpMDEhENe1Ej62XAqA2SxgGlLiRJme1AXfFLabFxHJDlPwqYqf2ZkfPxxkEucPRC4HamQg+fcxjd1mu+oUICAAMmwwuCIEAiAFBBQz+DrblZ/ODI3fE1xrpnKP9Kfu6jD50XIDWY2uMXR8efxUB14Hy9h9bFkUIBiskf5Uf4fJhyarvmThfL/UNcYcT5Vik+abXrjimJz5goLU7JKXutahyR6Km/wWBATHVSBrB4RO5xpz5RxBHB/8yRhCTGdAQDBlywJU1J0vXTJxepaUEy0LWCrVjZ3lkz81NLbF9ZQMU2cJFHzS9vp7hybyMxW8ZRUgMJGXTqXWA8A4Iq72JSGGKqSTNHTOKw69p2947F/nYyKP7k6+A5HtBKJ36BpLEABISSAlgaqpjiIkqvWER8DaeCPnCJwjICA4nqwiwvekopGdB8e/e8HKZrEoD+9K3mQI/h0n5DkF51wcnZEaS57Wnzk5m4trOQWY9v19yU90xMWHwxZ9gnX0Kdv/eu/w+AfmwrwIAIEABgcBaxRwbfYcvTt1DZPwRwrgbaRoMyFeCYrWcs4EqzsgRQBSkgSAVxDov5HhMwjshxpn3//og089G1gxgFE1OAhUu8arZcOJbfyOR495I33Jf07ExQcaedaEKXi54n+yNz/+keWIBZZUAYLOWSMDXds0zn/sKyIgYCGuW2vSzNFTvty6Y3ji53M0aZ43pvWP2Y0x1zPXObZYQyBNxgkR0ZEgzvhe4uWB/OPVhT73ob2pqzTCZ5SiDlVb9J//8yIozhAlyRt2HJj46VJ3HxNLqgBg1XJlYsOCI/N8JREx1GpfIi5EuSIPZ4Ynnp3DLyIAUPbOVMdvdfC1k55NcYhP/6NCnxEqBgAgXSHPnCbPF64X1/HXnOIKAKBi+yhMh3NZXj2yY8vruO5zAAAkphiJeZvgClSA6xqHKnN8Lr8SN8WHKrYvQ9Q6UCkCQ2PMs1keALqn32GrWYDAfOX7k7d0xMQXG8S8QCr6tc7N5AuxY5MzMa8g8NsA22LOZPVHQuAbfV8peK2FGYKag68pGNYLMhTkY7AIJBERYP0+zcb+f83tVRz/lszQeGEpXcGSFIICzOvAwNYEXxjmxaSEe+/Yd+xMwA6c/52AJnImK72rEmKz51OMMUwggjnnh0EMEQxEMBhDnTHUg7/X/81c6IfXf6fxWVnDxxjgvkey2+JLiY8tyXJwulDrwHHzWzvvXZUQf2KHb+kiYzrnVUf+5PTq8R3r11ssl/vNGVCjiZ5XG850XUGcfdH3lUbUHP3ZaKHWFQGlIpmIi86pKde758GTP4BstxgdfV41vQXIZoFZVlEdHUhu1EWjmFctMkfG+nI5ULNB1NNHwjPMxQy+WioKFpWwST4L88317mMah91LiY8t+g8GA+Mr3GfoPNEw5uXKL+w8OPbDoJvXzOyip6eoDu3avFUX7LZq+EWlVpDz8bF9S4WPLaoCBEuz+YHk22M6u6WB0zuIM0THVWWQePdcmFdwRAxKuV8TTCzBETHNoQHn8LFbDu9Ovm0p8LFFTQOLdRfAyzgcEBphRkURqYQp+GRF7u89XPrV6XWvTvum6+59qfeYMfbuiuMvyRExzSLBOyQF+WwWbiyWmtQCZLPdolgsys7JrtvjMb7NDntoI4EyNMYqFflLs2wOBZ1BZ06KsbEiZbPdAhD2K4LQaHbLWYHg8MqY2LbubPK2YrEoa1XJJlKAAPPKZ65byxDvd70FYF4Ie+549FhlNswr6B3QWT55e8LkWxxXKmjTE9BnpoWupxRn8EA+c91agFG1WPjYoihAgHkhc++Lx8Tlnt9wN68fZIZKX54N8wqU7JG9b1jDEAYdL3xtoYU1oIaPmeJyxt2PLSY+tuAfCTCvw/2buzTBtlfCp33TmBcAzIl5BUpW9Yy98Ri/wg+5hawtAsKqVIKzHYuJjy34B6a7eYFaGOblqU9lhsd/Nhvmlc0Cs3qKKp/ZdLXgmGmkttAOOhDgYwrkQVgkfGxBChDk6IcHku81DXZz2IicCIhzxqquOqUx7b5sFthsaV/QKRw5yxmCxZQCj4gUEPnz+RCRbLkPzPgQSUCEqu27MY3ffKS/652LcXjlQjQIs1lAgJR4XZme0AXvchvEvCarfm/v8PjIbKt9wQFRh3uTN61erX3H9RTginD9NEeqDGBoDM5M+S9UhZ3a++AvzmIjDYwWWgeoReSj/qEBdVfC1JLlSvjVPkPjbKrql8xy/GHLAj5bN6+xVO3BiMHLnkd/UbF9xZA1oAHUUuf6IaBSs6xMEgFOVRXFdBRxN8YRgQgaj4axscGvzfJ1pzdfynU1zhDXhMW8AhK2aqv3ZvKlb7figUvtIA1ZgHTawlonT3m/aYh1dfQpdLuUStX/RiY//u357O6pKV03i4bsnNQtJi2rApzr5tX1Zi7Y7dXaUm+YgSGGiJ6vHCXULphnN68aBjaqomFfXAk9o4IOV5LhsODIa905Qq/2MdejI30Hjh8vLFI3r0iWIQYI/PSR/pQVi/FCo5iXL9WL0teTr6x98uxidvOKZAktQIB5PZLdFieE/b5sHPMignv7Rp58ZTbMK5ImVYCg8WKlXN2VMPnVrtdANy+d86mq/1+nVo1/2rKiqL9lFCDAvB7Zm7pKY7Cn0W5eRAAccE7MK5ImVYDAVNse7YstBPPy5Be3D5f+fTbMK5ImVYAgRz/an/p9Q+O3NtLNizNE25VTMQ33Llc3r0jmJ3we059ZVglj7iVf1gTbELabF9Uxr6pDH99+sPS15ermFckipIHn9r0nb0+Y4lML6Ob1vNFhpl+AY3arHa++YhUg6JC99pXrVnPhjgvO1vt+yM4X9d2ulap/687h8S9lsykdoORHr312KZUWD3BMpYAGAQAuUGfBC83+Q32pA6vifFfYpg7Tiz2O+lZmuHRzNLwtZAHqLVAov3vTtQaKJ6UkjULueKk3PEAp6Tgg/A8AsXo7hhl3gAQUuQQ8144GYXGKY6QJRFvJTN+B48/Osa1+9sWgGmpUVMxnBzWTGZ7vh13wAURAXxLoGm7iDDdFc215RRFAIsbBOUtDAPD+dMliMAtriXMGfrWNF98K281rtkCQMNjcGsV+y2nckUjGDK7brrx559D4t2ZjLmYqAGazgBtObONOR+UJXedJ1w2HeUXSRFLvPub6cuLlDrx+tu5jbMbsr6HXHZU7E6ZIOW7oQxsjaS4jwBxPqkRMJNeV1V2zHV6J5wd+AACXlbdeolCOI8La8N28Imk6I1DvPkZEZ32Ndc3sPjY9u4NDGx3l3W8arNOXiqLBb4vsYvrwSrDlAzMPr0SA87p59SffpAn2E6kIKFw3r0ia3x1IgYiekjdmhiaOBWPOAH7jIMOGMK9IWsAVKAIhXn14JU63cR1IfTBu8GJozCuSFooHajR21Q5K890Cs1lgG05sizmrqmOawI1hjz6JpLXSQiEQfUW/MhJm6gU4ZvPRUaCbutfuXhUXf1p1ZDT72zsOQKlIrjJF59SU7dzz4EujOLJny5VMqScRaZU6F/xF0rY6AMQ4EhGUJYfrBfrysTWrRWfVUcAwivtWgigiMHW27pWy9zlBSA+fnvQejuz+yhLblUDAImu/4l1CoWDxsbEXI9u/AiWdXh8tz0YSSSSRRBJJJJFEEsmKk/8HmW/OpAwzvoUAAAAASUVORK5CYII=" alt=""><div>${t}</div></div>`; }
 function card(k,v,cls=""){ return `<div class="card mini ${cls}"><div class="k">${k}</div><div class="v">${v}</div></div>`; }
@@ -286,6 +292,30 @@ function render(){
   if(!temImp && !temInd && !temPar) html+=`<div class="note info">Nenhum percentual preenchido: o valor pago fica inteiro com o escritório.</div>`;
   html+=`</div>`;
 
+  // parcelas
+  const n=parseInt($("parcelas").value||"0",10)||0;
+  let pa=null;
+  if(n>=2){
+    const vParc=Math.floor(valor/n*100)/100;
+    const vUlt=round(valor-vParc*(n-1));
+    const a=calcular(vParc,pImp,pInd,pPar), u=calcular(vUlt,pImp,pInd,pPar);
+    const dif=vUlt!==vParc;
+    pa={n,vParc,vUlt,a,u,dif};
+    const col1=dif?rotIni(n):`Cada parcela (${pad2(n)}x)`;
+    const lin=(rot,k,cls="",sinal="")=>`<tr class="${cls}"><td>${rot}</td><td class="r">${sinal}${money(a[k])}</td>${dif?`<td class="r">${sinal}${money(u[k])}</td>`:""}</tr>`;
+    const rowsP=[];
+    rowsP.push(`<tr class="base"><td>Item</td><td class="r">${col1}</td>${dif?`<td class="r">${n}ª parcela</td>`:""}</tr>`);
+    rowsP.push(`<tr><td>Valor da parcela</td><td class="r">${money(vParc)}</td>${dif?`<td class="r">${money(vUlt)}</td>`:""}</tr>`);
+    if(temImp) rowsP.push(lin(`<span class="dot" style="background:var(--c-imp)"></span>Imposto (${pctTxt(pImp)})`,"imp","neg","− "));
+    if(temInd) rowsP.push(lin(`<span class="dot" style="background:var(--c-ind)"></span>Indicação (${pctTxt(pInd)})`,"ind","neg","− "));
+    if(temPar) rowsP.push(lin(`<span class="dot" style="background:var(--c-par)"></span>Advogado (${pctTxt(pPar)})`,"par","neg","− "));
+    rowsP.push(lin("Líquido do escritório","liquido","tot"));
+    const somaLiq=round(a.liquido*(n-1)+u.liquido);
+    html+=`<div class="card section"><h3>Composição por parcela</h3><p class="hint" style="margin:-6px 0 10px">${pad2(n)} parcelas${dif?` de ${money(vParc)}, com os centavos que sobram na última (${money(vUlt)})`:` iguais de ${money(vParc)}`}. O repasse é feito a cada parcela recebida.</p>
+      <div class="table-wrap"><table><tbody>${rowsP.join("")}</tbody></table></div>
+      ${somaLiq!==r.liquido?`<p class="hint">Somando as parcelas, o líquido do escritório dá ${money(somaLiq)}, diferença de centavos por arredondamento em cada parcela.</p>`:""}</div>`;
+  }
+
   // resumo
   const t=[];
   t.push(`Repasse de honorários${cliente?` - ${cliente}`:""}`);
@@ -294,6 +324,11 @@ function render(){
   if(temInd) t.push(`Comissão pela indicação${nInd?` - ${nInd}`:""} (${pctTxt(pInd)} de ${money(r.baseInd)}): ${money(r.ind)}`);
   if(temPar) t.push(`Comissão do advogado parceiro ou associado${nPar?` - ${nPar}`:""} (${pctTxt(pPar)} de ${money(r.basePar)}): ${money(r.par)}`);
   t.push(`Líquido do escritório: ${money(r.liquido)} (${pctTxt(pctLiq)} do valor pago)`);
+  if(pa){
+    const parte=(x,v)=>[`valor ${money(v)}`, temImp?`imposto ${money(x.imp)}`:"", temInd?`indicação ${money(x.ind)}`:"", temPar?`advogado ${money(x.par)}`:"", `escritório ${money(x.liquido)}`].filter(Boolean).join(", ");
+    t.push(`Pagamento em ${pad2(pa.n)} parcelas${pa.dif?` de ${money(pa.vParc)}, com a última de ${money(pa.vUlt)}`:` de ${money(pa.vParc)}`}.`);
+    t.push(`${pa.dif?rotIni(pa.n)+(pa.n>2?" parcelas":""):"Cada parcela"}: ${parte(pa.a,pa.vParc)}.`+(pa.dif?`\n\n${pa.n}ª parcela: ${parte(pa.u,pa.vUlt)}.`:""));
+  }
   t.push(`Calculado em ${hoje()}.`);
   html+=`<div class="card section"><h3>Resumo</h3>
     <pre id="txtResumo">${esc(t.join("\n\n"))}</pre>
@@ -339,9 +374,10 @@ $("valor").addEventListener("input",()=>{ $("valor").value=fmtInput($("valor").v
   const el=$(id);
   el.addEventListener("input",()=>{ el.value=fmtPct(el.value); render(); });
 });
+$("parcelas").addEventListener("input",()=>{ $("parcelas").value=onlyDigits($("parcelas").value).replace(/^0+/,"").slice(0,3); render(); });
 ["cliente","nInd","nPar"].forEach(id=>$(id).addEventListener("input",render));
 $("reset").addEventListener("click",()=>{
-  ["valor","cliente","pImp","pInd","nInd","pPar","nPar"].forEach(id=>$(id).value="");
+  ["valor","parcelas","cliente","pImp","pInd","nInd","pPar","nPar"].forEach(id=>$(id).value="");
   render(); $("valor").focus();
 });
 render();
