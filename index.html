@@ -252,8 +252,15 @@ pre{white-space:pre-wrap;font-family:inherit;font-size:13.5px;line-height:1.55;b
 
   <!-- 4. Entrada -->
   <div class="card section" id="secEntrada">
-    <h2><span class="n" id="nEntrada">4</span>Entrada</h2>
+    <h2><span class="n" id="nEntrada">4</span>Entrada e valor à vista</h2>
     <label class="check"><input type="checkbox" id="entradaPaga"> <span>A entrada já foi paga no ato da contratação.<br><span class="hint">Se não marcar, a entrada é somada ao que o cliente paga no final.</span></span></label>
+    <div class="grid" style="margin-top:16px">
+      <div>
+        <label class="f" for="aVista">Valor que o cliente paga à vista (opcional)</label>
+        <input type="text" id="aVista" inputmode="numeric" value="0,00">
+        <div class="hint" id="hintAVista">Se o cliente quiser dar um valor agora, ele abate do saldo e só o restante é parcelado.</div>
+      </div>
+    </div>
   </div>
 
   <!-- 5. Outros serviços -->
@@ -366,16 +373,18 @@ function calcPeriodo(ini, fim, valorDoMes, com13){
 /* ---------- pagamento no final ----------
    Cliente fica com pelo menos 01 benefício dos atrasados; o resto paga os honorários;
    saldo em parcelas de no máximo 50% do benefício, última parcela com o resto. */
-function planoFinal(devido, atrasados, beneficio, revisao=false){
+function planoFinal(devido, atrasados, beneficio, revisao=false, aVista=0){
   // Revisão: o cliente já recebe o benefício, então usa as diferenças atrasadas inteiras
   // e a diferença mensal integral para pagar (sem reserva e sem o limite de 50%).
   const guarda=revisao?0:beneficio;
   const reserva=round(Math.min(atrasados,guarda));
   const disponivel=round(Math.max(atrasados-guarda,0));
   if(disponivel>=devido){
-    return {pagoAtrasados:round(devido), clienteFica:round(atrasados-devido), saldo:0, teto:0, parcelas:[]};
+    return {pagoAtrasados:round(devido), clienteFica:round(atrasados-devido), saldo:0, teto:0, parcelas:[], aVista:0, saldoAntes:0};
   }
-  const saldo=round(devido-disponivel);
+  const saldoAntes=round(devido-disponivel);
+  const aVistaUsado=round(Math.min(Math.max(aVista,0),saldoAntes));
+  const saldo=round(saldoAntes-aVistaUsado);
   const teto=revisao?round(beneficio):Math.floor(beneficio*50)/100;
   const parcelas=[];
   if(teto>0){
@@ -385,7 +394,7 @@ function planoFinal(devido, atrasados, beneficio, revisao=false){
       parcelas.push(v); resto=round(resto-v);
     }
   }
-  return {pagoAtrasados:disponivel, clienteFica:reserva, saldo, teto, parcelas};
+  return {pagoAtrasados:disponivel, clienteFica:reserva, saldo, teto, parcelas, aVista:aVistaUsado, saldoAntes};
 }
 
 function resumoParcelas(parcelas){
@@ -487,20 +496,25 @@ function renderBeneficioOuRevisao(servico){
   const txtOutros=outros.map(o=>` + ${money(o.valor)} (${o.desc})`).join("");
   const entradaPaga=$("entradaPaga").checked;
   const devido=round(total-(entradaPaga?entrada:0));
-  const p=planoFinal(devido,atrasados,beneficio,servico==="revisao");
+  const aVistaIn=parseCur($("aVista").value);
+  const p=planoFinal(devido,atrasados,beneficio,servico==="revisao",aVistaIn);
+  const avTxt = p.aVista>0?`${money(p.aVista)} à vista`:"";
   const pagas=judicial?Math.min(pagasIn,p.parcelas.length):0;
   const pagoParc=round(p.parcelas.slice(0,pagas).reduce((a,v)=>a+v,0));
-  const saldoJud=round(devido-pagoParc);
+  const saldoJud=round(devido-p.aVista-pagoParc);
   const nomeAtr = servico==="revisao"?"diferenças atrasadas":"atrasados";
   const dosAtr = (servico==="revisao"?"das ":"dos ")+nomeAtr, osAtr=(servico==="revisao"?"as ":"os ")+nomeAtr, OsAtr=(servico==="revisao"?"As ":"Os ")+nomeAtr;
   const umBen = servico==="revisao"?"01 diferença mensal":"01 benefício";
   const baseLim = servico==="revisao"?`a diferença mensal integral`:`50% de ${money(beneficio)}`;
   const rotEntrada = servico==="revisao"?"Entrada (01 valor do benefício revisado)":"Entrada (01 salário mínimo)";
 
+  const partesAdm=[];
+  if(p.pagoAtrasados>0) partesAdm.push(`${money(p.pagoAtrasados)} com ${osAtr}`);
+  if(avTxt) partesAdm.push(avTxt);
+  if(p.parcelas.length) partesAdm.push(`${pad2(p.parcelas.length)} parcela${p.parcelas.length>1?"s":""} (${resumoParcelas(p.parcelas)})`);
   const sub = judicial
-    ? (pagas>0 && saldoJud>0 ? `${pad2(pagas)} parcela${pagas>1?"s":""} paga${pagas>1?"s":""} · saldo de ${money(saldoJud)} a quitar com a RPV ou o precatório` : pagas>0 ? "Quitado com as parcelas" : `Parcelas mensais de até ${money(p.teto)} · saldo quitado quando sair a RPV ou o precatório`)
-    : p.parcelas.length
-    ? `${money(p.pagoAtrasados)} com ${osAtr} + ${pad2(p.parcelas.length)} parcela${p.parcelas.length>1?"s":""} (${resumoParcelas(p.parcelas)})`
+    ? (avTxt?avTxt+" · ":"")+(pagas>0 && saldoJud>0 ? `${pad2(pagas)} parcela${pagas>1?"s":""} paga${pagas>1?"s":""} · saldo de ${money(saldoJud)} a quitar com a RPV ou o precatório` : pagas>0 ? "Quitado com as parcelas" : `Parcelas mensais de até ${money(p.teto)} · saldo quitado quando sair a RPV ou o precatório`)
+    : (p.parcelas.length||p.aVista>0) ? partesAdm.join(" + ")
     : `Pago de uma vez com ${osAtr}`;
   let html=hero(judicial?"A cobrar do cliente":"Honorários totais",money(total),(entradaPaga?`Entrada de ${money(entrada)} já paga · `:"")+sub)+(judicial?`<div class="cards">
     ${card("Entrada",money(entradaPaga?0:entrada))}
@@ -514,6 +528,8 @@ function renderBeneficioOuRevisao(servico){
 
   const pres=avisoPrescricao(at);
   if(pres) html+=`<div class="note warn">${pres}</div>`;
+  if(aVistaIn>0 && p.saldoAntes<=0) html+=`<div class="note warn">${OsAtr} já cobrem tudo, então o valor à vista não foi usado.</div>`;
+  else if(aVistaIn>p.aVista) html+=`<div class="note warn">O valor à vista informado (${money(aVistaIn)}) é maior que o saldo. Foi considerado só o saldo, ${money(p.aVista)}.</div>`;
   if(servico==="beneficio" && radio("tipoValor")==="rmi" && at.modo==="periodo" && at.ini.y<at.fim.y)
     html+=`<div class="note warn">O período passa de um ano para outro e os reajustes anuais do INSS não estão incluídos: todos os meses usam a RMI. Para o valor exato, use "Valor pago pelo INSS".</div>`;
 
@@ -536,16 +552,20 @@ function renderBeneficioOuRevisao(servico){
   html+=`<h3 style="margin-top:22px">${judicial?"Pagamento":"Pagamento no final"}</h3>`;
   if(judicial){
     html+=`<div class="note info">Os 30% ${dosAtr} vêm descontados pela Justiça na RPV ou no precatório. A partir da implantação, o cliente paga ${entradaPaga?"":"a entrada e "}${servico==="revisao"?"as 04 diferenças":"os 04 benefícios"} em parcelas mensais de no máximo ${money(p.teto)} (${baseLim}). Quando sair a RPV ou o precatório, quita de uma vez o saldo que faltar.</div>`;
+    if(p.aVista>0) html+=`<div class="note ok">O cliente paga ${money(p.aVista)} à vista. ${p.saldo>0?`O restante, ${money(p.saldo)}, vai para as parcelas mensais.`:"Com isso, quita tudo e não há parcelas."}</div>`;
     if(pagas>0) html+=`<div class="note ok">${pad2(pagas)} parcela${pagas>1?"s":""} paga${pagas>1?"s":""}: ${money(pagoParc)}. ${saldoJud>0?`Saldo a quitar com a RPV ou o precatório: <strong>${money(saldoJud)}</strong>.`:"Nada a quitar: o parcelamento terminou antes."}</div>`;
     if(p.parcelas.length) html+=`<div class="table-wrap" style="margin-top:14px"><table><thead><tr><th>Parcela</th><th class="r">Valor</th><th class="r">Saldo depois</th></tr></thead><tbody>
-    ${(()=>{let r=devido;return p.parcelas.map((v,i)=>{r=round(r-v);return `<tr${i<pagas?' style="opacity:.55"':''}><td>${pad2(i+1)}ª parcela${i<pagas?" · paga":""}</td><td class="r">${money(v)}</td><td class="r">${money(r)}</td></tr>`;}).join("");})()}
+    ${(()=>{let r=round(devido-p.aVista);return p.parcelas.map((v,i)=>{r=round(r-v);return `<tr${i<pagas?' style="opacity:.55"':''}><td>${pad2(i+1)}ª parcela${i<pagas?" · paga":""}</td><td class="r">${money(v)}</td><td class="r">${money(r)}</td></tr>`;}).join("");})()}
     <tr class="tot"><td>${pad2(p.parcelas.length)} parcelas, se a RPV ou o precatório não sair antes</td><td class="r">${money(p.saldo)}</td><td></td></tr></tbody></table></div>
     <p class="hint">O "saldo depois" de cada parcela é o valor a quitar se a RPV ou o precatório sair naquele mês.</p>`;
+  } else if(!p.parcelas.length && p.aVista>0){
+    html+=`<div class="note ok">${OsAtr} não cobrem tudo. ${p.pagoAtrasados>0?`${money(p.pagoAtrasados)} saem ${dosAtr}, `:""}o cliente paga ${money(p.aVista)} à vista e quita tudo, sem parcelas.${servico!=="revisao"?` Ele fica com ${money(p.clienteFica)} ${dosAtr}.`:""}</div>`;
   } else if(!p.parcelas.length){
     html+=`<div class="note ok">${OsAtr} cobrem tudo. O pagamento de ${money(devido)} é feito de uma vez com ${osAtr} e o cliente fica com ${money(p.clienteFica)}${servico!=="revisao"&&p.clienteFica>=beneficio?` (pelo menos ${umBen} de ${money(beneficio)})`:""}.</div>`;
   } else {
-    if(servico==="revisao") html+=`<div class="note info">${OsAtr} não cobrem tudo. Como o cliente já recebe o benefício, ${p.pagoAtrasados>0?`${osAtr} vão inteiras para o pagamento (${money(p.pagoAtrasados)}) e `:""}o saldo de ${money(p.saldo)} é pago com a diferença mensal integral, ${money(p.teto)} por mês.</div>`;
-    else html+=`<div class="note info">${OsAtr} não cobrem tudo. O cliente fica com ${money(p.clienteFica)}${atrasados>=beneficio?` (${umBen})`:` (${osAtr} não chegam a ${umBen}, então ficam todos com ele)`}, ${p.pagoAtrasados>0?`${money(p.pagoAtrasados)} saem ${dosAtr} como entrada, `:""}e o saldo de ${money(p.saldo)} é parcelado com parcela de no máximo ${money(p.teto)} (${baseLim}).</div>`;
+    if(servico==="revisao") html+=`<div class="note info">${OsAtr} não cobrem tudo. Como o cliente já recebe o benefício, ${p.pagoAtrasados>0?`${osAtr} vão inteiras para o pagamento (${money(p.pagoAtrasados)}) e `:""}o saldo de ${money(p.saldoAntes)} é pago com a diferença mensal integral, ${money(p.teto)} por mês.</div>`;
+    else html+=`<div class="note info">${OsAtr} não cobrem tudo. O cliente fica com ${money(p.clienteFica)}${atrasados>=beneficio?` (${umBen})`:` (${osAtr} não chegam a ${umBen}, então ficam todos com ele)`}, ${p.pagoAtrasados>0?`${money(p.pagoAtrasados)} saem ${dosAtr} como entrada, `:""}e o saldo de ${money(p.saldoAntes)} ${p.aVista>0?"fica para o cliente pagar":`é parcelado com parcela de no máximo ${money(p.teto)} (${baseLim})`}.</div>`;
+    if(p.aVista>0) html+=`<div class="note ok">O cliente paga ${money(p.aVista)} à vista. O saldo cai de ${money(p.saldoAntes)} para ${money(p.saldo)}, parcelado com parcela de no máximo ${money(p.teto)} (${baseLim}).</div>`;
     html+=`<div class="table-wrap" style="margin-top:14px"><table><thead><tr><th>Parcela</th><th class="r">Valor</th></tr></thead><tbody>
     ${p.parcelas.map((v,i)=>`<tr><td>${pad2(i+1)}ª parcela${i===p.parcelas.length-1&&p.parcelas.length>1?" (última, com o resto)":""}</td><td class="r">${money(v)}</td></tr>`).join("")}
     <tr class="tot"><td>${pad2(p.parcelas.length)} parcelas</td><td class="r">${money(p.saldo)}</td></tr></tbody></table></div>`;
@@ -562,14 +582,20 @@ function renderBeneficioOuRevisao(servico){
   if(judicial){
     t.push(`30% ${dosAtr}: descontados pela Justiça na RPV ou no precatório.`);
     t.push(`A cobrar do cliente: ${entradaPaga?"":`${money(entrada)} (entrada) + `}${money(quatro)} (${servico==="revisao"?"04 diferenças mensais":"04 benefícios"})${ajusteMin?` + ${money(ajusteMin)} (complemento do mínimo)`:""}${txtOutros} = ${money(devido)}${entradaPaga?` (entrada de ${money(entrada)} paga no ato)`:""}`);
+    if(p.aVista>0) t.push(`Pago à vista pelo cliente: ${money(p.aVista)}.${p.saldo>0?` Restante a parcelar: ${money(p.saldo)}.`:" Quitado, sem parcelas."}`);
     if(p.parcelas.length) t.push(`Parcelas mensais a partir da implantação: ${resumoParcelas(p.parcelas)}. O saldo que faltar é quitado de uma vez quando sair a RPV ou o precatório.`);
     if(pagas>0) t.push(`Parcelas pagas: ${pad2(pagas)} (${money(pagoParc)}). Saldo a quitar com a RPV ou o precatório: ${money(saldoJud)}.`);
   } else {
   t.push(`${servico==="revisao"?"Diferenças atrasadas":"Atrasados"}: ${money(atrasados)} (${descPeriodo(at)})`);
   t.push(`Honorários: ${money(entrada)} (entrada${entradaPaga?", paga no ato":""}) + ${money(trinta)} (30% ${dosAtr}) + ${money(quatro)} (${servico==="revisao"?"04 diferenças mensais":"04 benefícios"})${ajusteMin?` + ${money(ajusteMin)} (complemento do mínimo)`:""}${txtOutros} = ${money(total)}`);
-  if(!p.parcelas.length) t.push(`Pagamento no final: ${money(devido)} de uma vez com ${osAtr}. Cliente fica com ${money(p.clienteFica)}.`);
+  if(!p.parcelas.length && p.aVista>0){
+    t.push(`Pagamento no final: ${money(p.pagoAtrasados)} com ${osAtr}.${servico==="revisao"?"":` Cliente fica com ${money(p.clienteFica)}.`}`);
+    t.push(`Pago à vista pelo cliente: ${money(p.aVista)}. Quitado, sem parcelas.`);
+  }
+  else if(!p.parcelas.length) t.push(`Pagamento no final: ${money(devido)} de uma vez com ${osAtr}. Cliente fica com ${money(p.clienteFica)}.`);
   else {
     t.push(`Pagamento no final: ${money(p.pagoAtrasados)} com ${osAtr}.${servico==="revisao"?" Como o cliente já recebe o benefício, as diferenças vão inteiras para o pagamento.":` Cliente fica com ${money(p.clienteFica)}.`}`);
+    if(p.aVista>0) t.push(`Pago à vista pelo cliente: ${money(p.aVista)}.`);
     t.push(`Saldo parcelado: ${money(p.saldo)} em ${pad2(p.parcelas.length)} parcelas: ${resumoParcelas(p.parcelas)}.`);
   }
   }
@@ -731,7 +757,7 @@ function copiarResumo(){
 /* ---------- eventos ---------- */
 $("addOutro").addEventListener("click",()=>addOutro());
 $("parcPagas").addEventListener("input",()=>{ $("parcPagas").value=onlyDigits($("parcPagas").value).slice(0,3)||""; render(); });
-["smAtual","rmi","valorAtual","revAntigo","revNovo","revMinimo","atrasadosInf"].forEach(id=>{
+["smAtual","rmi","valorAtual","revAntigo","revNovo","revMinimo","atrasadosInf","aVista"].forEach(id=>{
   const el=$(id);
   el.addEventListener("input",()=>{ el.value=fmtInput(el.value); render(); });
   el.addEventListener("focus",()=>{ if(parseCur(el.value)===0) el.select(); });
@@ -743,7 +769,7 @@ $("btn120").addEventListener("click",()=>{
   $("dataFim").value=d.toISOString().slice(0,10); render();
 });
 $("reset").addEventListener("click",()=>{
-  ["rmi","valorAtual","revAntigo","revNovo","revMinimo","atrasadosInf"].forEach(id=>$(id).value="0,00");
+  ["rmi","valorAtual","revAntigo","revNovo","revMinimo","atrasadosInf","aVista"].forEach(id=>$(id).value="0,00");
   $("dataIni").value=""; $("dataFim").value=""; $("parcPagas").value="0"; $("listaOutros").innerHTML="";
   $("com13").checked=true; $("entradaPaga").checked=false; $("curatelaResultado").checked=false;
   document.querySelector('input[name="tipoValor"][value="sm"]').checked=true;
