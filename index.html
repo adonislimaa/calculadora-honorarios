@@ -564,10 +564,10 @@ function renderBeneficioOuRevisao(servico){
     html+=`<div class="note info">Os 30% ${dosAtr} vêm descontados pela Justiça na RPV ou no precatório. A partir da implantação, o cliente paga ${entradaPaga?"":"a entrada e "}${servico==="revisao"?"as 04 diferenças":"os 04 benefícios"} em parcelas mensais de no máximo ${money(p.teto)} (${baseLim}). Quando sair a RPV ou o precatório, quita de uma vez o saldo que faltar.</div>`;
     if(p.aVista>0) html+=`<div class="note ok">O cliente paga ${money(p.aVista)} à vista. ${p.saldo>0?`O restante, ${money(p.saldo)}, vai para as parcelas mensais.`:"Com isso, quita tudo e não há parcelas."}</div>`;
     if(pagas>0) html+=`<div class="note ok">${pad2(pagas)} parcela${pagas>1?"s":""} paga${pagas>1?"s":""}: ${money(pagoParc)}. ${saldoJud>0?`Saldo a quitar com a RPV ou o precatório: <strong>${money(saldoJud)}</strong>.`:"Nada a quitar: o parcelamento terminou antes."}</div>`;
-    if(p.parcelas.length) html+=`<div class="table-wrap" style="margin-top:14px"><table><thead><tr><th>Parcela</th><th class="r">Valor</th><th class="r">Saldo depois</th></tr></thead><tbody>
+    if(p.parcelas.length) html+=`<div class="table-wrap" style="margin-top:14px"><table><thead><tr><th>Parcela</th><th class="r">Valor</th><th class="r">Falta pagar</th></tr></thead><tbody>
     ${(()=>{let r=round(devido-p.aVista);return p.parcelas.map((v,i)=>{r=round(r-v);return `<tr${i<pagas?' style="opacity:.55"':''}><td>${pad2(i+1)}ª parcela${i<pagas?" · paga":""}</td><td class="r">${money(v)}</td><td class="r">${money(r)}</td></tr>`;}).join("");})()}
     <tr class="tot"><td>${pad2(p.parcelas.length)} parcelas, se a RPV ou o precatório não sair antes</td><td class="r">${money(p.saldo)}</td><td></td></tr></tbody></table></div>
-    <p class="hint">O "saldo depois" de cada parcela é o valor a quitar se a RPV ou o precatório sair naquele mês.</p>`;
+    <p class="hint">"Falta pagar" é quanto o cliente ainda deve depois de pagar aquela parcela. Se a RPV ou o precatório sair nesse mês, é o valor que ele quita de uma vez.</p>`;
   } else if(!p.parcelas.length && p.aVista>0){
     html+=`<div class="note ok">${OsAtr} não cobrem tudo. ${p.pagoAtrasados>0?`${money(p.pagoAtrasados)} saem ${dosAtr}, `:""}o cliente paga ${money(p.aVista)} à vista e quita tudo, sem parcelas.${servico!=="revisao"?` Ele fica com ${money(p.clienteFica)} ${dosAtr}.`:""}</div>`;
   } else if(!p.parcelas.length){
