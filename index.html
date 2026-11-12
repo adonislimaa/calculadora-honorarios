@@ -516,7 +516,15 @@ function renderBeneficioOuRevisao(servico){
     ? (avTxt?avTxt+" · ":"")+(pagas>0 && saldoJud>0 ? `${pad2(pagas)} parcela${pagas>1?"s":""} paga${pagas>1?"s":""} · saldo de ${money(saldoJud)} a quitar com a RPV ou o precatório` : pagas>0 ? "Quitado com as parcelas" : `Parcelas mensais de até ${money(p.teto)} · saldo quitado quando sair a RPV ou o precatório`)
     : (p.parcelas.length||p.aVista>0) ? partesAdm.join(" + ")
     : `Pago de uma vez com ${osAtr}`;
-  let html=hero(judicial?"A cobrar do cliente":"Honorários totais",money(total),(entradaPaga?`Entrada de ${money(entrada)} já paga · `:"")+sub)+(judicial?`<div class="cards">
+  const jaPagoJud = judicial ? round(p.aVista+pagoParc+(entradaPaga?entrada:0)) : 0;
+  const partesPago=[];
+  if(judicial && entradaPaga) partesPago.push("entrada no ato");
+  if(judicial && p.aVista>0) partesPago.push("à vista");
+  if(judicial && pagas>0) partesPago.push(`${pad2(pagas)} parcela${pagas>1?"s":""}`);
+  const heroJud = judicial && jaPagoJud>0;
+  let html=(heroJud
+    ? hero("Falta pagar",money(saldoJud),`Total de ${money(total)} · já pago ${money(jaPagoJud)} (${partesPago.join(", ")})${saldoJud>0&&pagas>0?" · quitar quando sair a RPV ou o precatório":""}`)
+    : hero(judicial?"A cobrar do cliente":"Honorários totais",money(total),(entradaPaga?`Entrada de ${money(entrada)} já paga · `:"")+sub))+(judicial?`<div class="cards">
     ${card("Entrada",money(entradaPaga?0:entrada))}
     ${card(servico==="revisao"?"04 diferenças":"04 benefícios",money(quatro))}
     ${pagas>0?card("Saldo a quitar",money(saldoJud),"ok"):card("30% dos atrasados","Na RPV/precatório")}
@@ -545,7 +553,9 @@ function renderBeneficioOuRevisao(servico){
     ${linhasComp.map(([k,v])=>`<tr><td>${k}</td><td class="r">${money(v)}</td></tr>`).join("")}
     <tr class="tot"><td>${judicial?"Total a cobrar do cliente":"Total dos honorários"}</td><td class="r">${money(total)}</td></tr>
     ${judicial?`<tr><td>30% ${dosAtr}</td><td class="r">descontados na RPV ou no precatório</td></tr>`:""}
-    ${entradaPaga?`<tr><td>A pagar no final (total menos a entrada já paga)</td><td class="r">${money(devido)}</td></tr>`:""}
+    ${judicial
+      ? (jaPagoJud>0 ? `${entradaPaga?`<tr><td>(−) Entrada paga no ato</td><td class="r">${money(entrada)}</td></tr>`:""}${p.aVista>0?`<tr><td>(−) Pago à vista</td><td class="r">${money(p.aVista)}</td></tr>`:""}${pagas>0?`<tr><td>(−) ${pad2(pagas)} parcela${pagas>1?"s":""} paga${pagas>1?"s":""}</td><td class="r">${money(pagoParc)}</td></tr>`:""}<tr class="tot"><td>Falta pagar</td><td class="r">${money(saldoJud)}</td></tr>` : "")
+      : (entradaPaga?`<tr><td>A pagar no final (total menos a entrada já paga)</td><td class="r">${money(devido)}</td></tr>`:"")}
     </tbody></table></div>`;
 
   // pagamento
