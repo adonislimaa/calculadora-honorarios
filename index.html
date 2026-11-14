@@ -430,12 +430,13 @@ function avisoPrescricao(at){
 /* ---------- render ---------- */
 function card(k,v,cls=""){ return `<div class="card mini ${cls}"><div class="k">${k}</div><div class="v">${v}</div></div>`; }
 
-function tabelaAtrasados(at, titulo){
+function tabelaAtrasados(at, titulo, trinta=false){
   if(at.modo!=="periodo" || !at.linhas.length) return "";
-  const rows=at.linhas.map(l=>`<tr><td>${l.ref}</td><td class="r">${l.is13?l.dias:pad2(l.dias)+" dias"}</td><td class="r">${money(l.base)}</td><td class="r">${money(l.valor)}</td></tr>`).join("");
+  const rows=at.linhas.map(l=>`<tr><td>${l.ref}</td><td class="r">${l.is13?l.dias:pad2(l.dias)+" dias"}</td>${trinta?"":`<td class="r">${money(l.base)}</td>`}<td class="r">${money(l.valor)}</td>${trinta?`<td class="r"><strong>${money(round(l.valor*0.30))}</strong></td>`:""}</tr>`).join("");
   return `<details><summary>${titulo} (${fmtData(at.ini)} a ${fmtData(at.fim)})</summary>
-    <div class="table-wrap"><table><thead><tr><th>Mês</th><th class="r">Dias</th><th class="r">Valor mensal</th><th class="r">Valor devido</th></tr></thead>
-    <tbody>${rows}<tr class="tot"><td colspan="3">Total</td><td class="r">${money(at.total)}</td></tr></tbody></table></div></details>`;
+    <div class="table-wrap"><table><thead><tr><th>Mês</th><th class="r">Dias</th>${trinta?"":`<th class="r">Valor mensal</th>`}<th class="r">${trinta?"Recebido":"Valor do mês"}</th>${trinta?`<th class="r">Honorários 30%</th>`:""}</tr></thead>
+    <tbody>${rows}<tr class="tot"><td colspan="${trinta?2:3}">Total</td><td class="r">${money(at.total)}</td>${trinta?`<td class="r">${money(round(at.linhas.reduce((a,l)=>a+round(l.valor*0.30),0)))}</td>`:""}</tr></tbody></table></div>
+    ${trinta?`<p class="hint" style="padding:0 14px 12px">"Recebido" é o benefício que o cliente recebe no mês (proporcional aos dias). Os honorários são 30% desse valor.</p>`:""}</details>`;
 }
 
 function blocoCopiar(texto){
@@ -628,7 +629,10 @@ function renderTrintaPorCento(servico){
   else { const rmi=parseCur($("rmi").value); if(rmi<=0 && radio("modo")==="periodo") return msg("Informe a RMI do benefício."); valorDoMes=()=>rmi; beneficio=rmi; }
   const at=lerAtrasados(valorDoMes);
   if(at.erro) return msg(at.erro);
-  const total=at.total, hon=round(total*0.30), fica=round(total-hon);
+  const total=at.total;
+  // pelo período, os honorários são a soma dos 30% de cada mês (bate com a memória mês a mês)
+  const hon = at.modo==="periodo" ? round(at.linhas.reduce((a,l)=>a+round(l.valor*0.30),0)) : round(total*0.30);
+  const fica=round(total-hon);
   const nome = servico==="maternidade"?"Salário-maternidade":"Auxílio-doença";
   let html=hero("Honorários (30%)",money(hon),"Sem entrada")+`<div class="cards">
     ${card("Total recebido",money(total))}
@@ -637,7 +641,7 @@ function renderTrintaPorCento(servico){
   </div>`;
   const pres=avisoPrescricao(at); if(pres) html+=`<div class="note warn">${pres}</div>`;
   if(servico==="doenca") html+=`<div class="note info">Entram no total todos os valores recebidos, inclusive nas prorrogações pedidas pelo escritório. Se houver prorrogação, estenda a data final até a nova data de cessação ou some os valores em "Informar o valor".</div>`;
-  if(at.modo==="periodo") html+=`<div class="card section" style="margin-top:16px">${tabelaAtrasados(at,"Memória dos valores, mês a mês").replace("<details>","<details open>")}</div>`;
+  if(at.modo==="periodo") html+=`<div class="card section" style="margin-top:16px">${tabelaAtrasados(at,"Memória dos valores e dos honorários, mês a mês",true).replace("<details>","<details open>")}</div>`;
   const t=[`Cálculo de honorários - ${nome}`,
     `Total recebido: ${money(total)} (${descPeriodo(at)})`,
     `Honorários: 30% de ${money(total)} = ${money(hon)}, sem entrada.`,
